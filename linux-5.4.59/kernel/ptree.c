@@ -7,10 +7,6 @@
 #include <linux/list.h>
 #include <linux/uaccess.h>
 
-#define first_child_task(task)\
-        list_first_entry(&(task)->children, struct task_struct, sibling)
-#define next_sibling_task(task)\
-        list_first_entry(&(task)->sibling,struct task_struct, sibling)
 
 inline pid_t child_pid(struct task_struct *task){
         if(list_empty(&task->children))
@@ -42,9 +38,10 @@ int dfs_init_task(struct prinfo *kbuf, int buflen, int *knr){
 
         while(true){
                 if(list_empty(&task->children)){
-                        while(list_is_last(&task->sibling, &task->real_parent->children))task = task->real_parent;
-                        task=next_sibling_task(task);
-                }else task = first_child_task(task);
+                        while(list_is_last(&task->sibling, &task->real_parent->children))
+                            task = task->real_parent;
+                        task=list_first_entry(&(task)->sibling,struct task_struct, sibling);
+                }else task = list_first_entry(&(task)->children, struct task_struct, sibling);
   
                 if(task==&init_task)break;
 
